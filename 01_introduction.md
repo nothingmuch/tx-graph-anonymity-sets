@@ -118,30 +118,62 @@ creating a payment output directly from a CoinJoin.
 
 ## Model boundaries
 
-### Data, metadata, ...
+This "folk" notion of an anonymity set analogized from mixnets unfortunately
+rests on some fairly strong and mostly tacit assumptions. This limits its
+applicability in understanding the capabilities of real world adversaries. In
+this post we will try and make explicit some of these assumptions and where they
+break down. As the series unfolds more general models will be progressively
+developed, with the goal of weakening these assumptions and making it possible
+to reason about CoinJoin privacy more broadly.
 
-- tacit assumption: the transaction graph is all that matters for privacy
-- there are a lot of things we will consider out of scope
-  - blockchain external information
-    - e.g. KYC information
-  - p2p protocol and other network protocol leaks
-  - temporal patterns
-  - light client limitations
-- we will briefly revisit some of these in the last post in this series
+### Restricted Adversary
+
+The most obvious tacit assumption of the folk anonymity set model is that the
+CoinJoin structure can be considered separately from the rest of the transaction
+graph. Real world adversaries of Bitcoin users might be abusive spouses,
+criminals looking to steal or extort,  dragnet surveillance by governments,
+advertising companies, etc. The model of an algorithm trying to output its best
+guess about the links given only a single transaction in isolation might express
+some of the capabilities of such adversaries, but already fails to capture
+wallet clustering, literally the oldest trick in the book (i.e. Bitcoin privacy
+literature).
+
+As we will see in a few posts, a common variant of this assumption is the
+misconception that for some transactions breaking privacy is computationally
+intractable.
+
+### Data & metadata privacy
+
+Another tacit assumption is that it is enough to consider the data on chain.
+Unfortunately blockchain external information is clearly useful in a
+deanonymization attack. This might be confidential compliance records (e.g.
+AML/KYC data available exchanges and companies they might contract) or other
+personally identifying information (e.g. email or physical addresses leaked in a
+website breach), temporal fingerprints (e.g. periods of activity indicating a
+likely time zone, but also things like latency), IP addresses, and
+implementation specific behavior that might reveal a user's choice of wallet.
+
+With minor exceptions towards the end of the series, no treatment, quantitative
+or qualitative, will be given to these kinds of privacy leaks.
 
 ### Sybil deanonymization attacks
 
-- tacit assumption: no sybil deanonymization attack aka n-1 attack takes place during transaction construction
-- this is the simplest way to undermine the model: give adversary information about who the user is *not*
-  - If $k-1$ of the (apparent) users are under adversarial control, there is no anonymity
-- In a permissionless system, such "Sybil" users are indistinguishable from honest ones and prevention mechanisms are unavailable
-- Therefore Sybil resistance can only come from imposing some cost on participation
-  - some costs are inherent in bitcoin: fees, time value of money
-  - additional costs can be imposed
-- This is really more of a meta topic since it's not about evaluating metrics for privacy, and more about how to interpret these metrics
-- For simplicity, assume Sybil resistance can be taken for granted for now, and all users are honest
-- the 2nd to last post in the series will try to quantify guarantees aspects of Sybil resistance, namely a cost for such an attack
-- TODO diagrams for sybil coinjoin
+The $n-1$ or Sybil deanonymization attack gives the adversary information about
+who the user is *not*. If all users but one are under adversarial control, all
+of their inputs and outputs can be excluded, and leaving the honest user with
+effectively no anonymity, but maintaining the appearances of one.
+
+In a permissionless system, such "Sybil" users are indistinguishable from honest
+users. Therefore Sybil resistance can only come from imposing some cost on
+participation. Some costs are inherent in Bitcoin: transaction fees and time
+value of money. Additional costs can be imposed through mechanism design, but
+e.g. in the case of coordination fees, note that those decrease the cost of an
+attack by a corrupted coordinator.``
+
+For now we will assume Sybil resistance can be taken for granted, and that all
+users are honest, but we will revisit this topic in detail.
+
+TODO diagram
 
 ### Other users must also protect their privacy
 
