@@ -1,14 +1,119 @@
-# Part 1: What do we mean by "CoinJoin" "anonymity set"
+# Anonymity Sets on the Transaction Graph: Part 1
 
 ## Introduction
 
-- "CoinJoin" has been used to refer to a number of related things
-  - overly general: several different implementations with significant differences between them
+This post is the first in a series about quantifying the privacy of Bitcoin
+transactions. When studying the privacy of a system a common approach is to
+consider a hypothetical adversary which observes messages (in this case
+payments), and which tries to guess among the users of the system who the
+receiver and sender of the message are.
+
+The *anonymity set* of a message is the set of users which may have sent (or
+received) it. In a perfectly anonymous system the adversary is unable to guess
+better than chance among all users of the system, i.e. the anonymity set is as
+large is it could be.
+
+Typical Bitcoin payment transactions can often be linked together into so called
+*wallet clusters*, which are sets of transactions which are attributable to the
+same sender due to the ways in which they are apparently connected. Privacy
+enhanced Bitcoin transactions both subvert these clustering heuristics and
+introduce ambiguity by involving multiple users, which often means these
+transactions don't correspond to payments and therefore thinking of a sender and
+receiver is an oversimplification, therefore in general it is better to think of
+the anonymity set of a particular output of a transaction.
+
+*CoinJoin* transactions (defined more precisely below) are the most common and
+straightforward example of Bitcoin transactions designed to have nontrivial
+anonymity sets. The main goal of this series is to develop a more nuanced and
+rigorous perspective on how the privacy of such transactions can be studied
+quantitatively. We will begin by looking at an intuitive notion of privacy which
+is often tacitly assumed and some of the challenges it has in accounting for
+more realistic threat models or models of wallet behavior. As the series we will
+review some papers on the subject, and use them to progressively builds towards
+a more complete account.
+
+This is part of ongoing work on a new CoinJoin protocol which will be introduced
+after this series concludes, but apart from a few digressions this series is
+mostly concerned with the theory side of things, and is meant to be standalone.
+
+## Preliminaries
+
+The common input ownership heuristic (CIOH) is a fairly standard assumption used
+to cluster Bitcoin transactions, which states that a transaction with several
+inputs constitutes evidence that the coins spent by those inputs are all owned
+by the same entity. It was alluded to in passing already in the original
+whitepaper and then elaborated on by several works (TODO citations for satoshi's
+paper, ron & shamir, fistful of bitcoins, jonas nick, unreasonable
+effectiveness).
+
+This is a heuristic because at the protocol level no such restriction exists:
+transactions can spend the coins of multiple users. Greg maxwell's 2013 bitcoin
+talk post ["CoinJoin: Bitcoin privacy for the real
+world"](https://bitcointalk.org/index.php?topic=279249.0) described(footnote:
+not for the first time, goes back at least to 2011) and named named an approach
+to building transactions that subvert the CIOH. Central to this approach is the
+elimination of the theft risk associated with mixing services that needed to be
+entrusted with user funds, which were already available.
+
+In Greg Maxwell's description (some of) the outputs of this transaction have
+identical values, similarly to a shuffling stage in a mixnet. The intuition is
+that an adversary is given only such a transaction, and is then challenged to
+guess which of the equivalent outputs was created by the participant which owns
+some particular given input (or more generally, some set of inputs). It directly
+follows from the definition of the outputs as equivalent that this output is
+underdetermined, so the adversary can do no better than to guess one of the
+equivalent outputs at random.
+
+Unfortunately, as we will see the mixnet analogy is only just that, i.e. mix
+structured CoinJoin transactions are only able to provide much weaker
+guarantees for several reasons.. This is similar to how Tor and onion routing
+are often colloquially referred to as mixnets, when in fact the privacy
+assurances and threat model are vastly different. Secondly, CoinJoin
+transactions don't just exist in a vacuum, and real world adversaries have
+access to auxiliary information making the setup in the previous paragraph
+rather contrived.
+
+Some simplifying assumptions will still be made throughout this series. To
+create a CoinJoin, $k$ users must construct a transaction together, each
+contributing one or more coins. Doing this reliably is not trivial in the
+presence of byzantine faults. Therefore for the most part we will assume some
+kind of perfect black box coordination mechanism. When building the transaction,
+neither the participants nor any third party observers will learn anything more
+than what the final transaction reveals, i.e. it has perfect data and metadata
+anonymity. For example, in the real world the order or timing in which inputs or
+outputs were added can help an adversary more accurately guess whether inputs
+and outputs are linked, but we will mostly ignore such details. Secondly,
+liveness will also be assumed, i.e. the honest participants will always succeed in
+outputting a valid transaction. In the real world denial of service must be
+mitigated and even if it is perfectly addressed, the partial synchrony or
+asynchronous communication model better characterizes network level failure
+modes. However, the liveness assumption implies the synchronous communication
+model for the same reason that safety is inherent for the most part: CoinJoins
+require unanimous agreement because a valid transaction requires signatures by
+owners of all of the coins it spends, allowing each participant to ensure that
+their funds are not misappropriated.
+
+## Challenges with CoinJoin
+
+Since the term CoinJoin was introduced over a decade ago, multiple
+implementations have been developed, each with its own variation on the concept,
+making the term somewhat vague. At the same time it often connotes a rather
+rigid "mix" structure which presents some practical challenges, and as such is
+arguably not just overly general, also overly specific.
+
+
+
+- fixed denomination (per tx or per pool)
+
   - not general enough: people tend to assume a mix transaction structure, but that structure has some inherent limitations
     - if any payment-linked output (newly received and change outputs) is mixed once before being used in another payment output this implies at minimum a 2x overhead in block space
     - if a single party (e.g. taker in JoinMarket) pays for the entirety of the transaction this cost is proportional to the size of those transactions
     - fragmentation, which is inherent in the UTXO model, not only directly contributes to this overhead, but adds an additional exponential overhead if accounting for intersection attacks
     - therefore multiple mixing transactions the amount of blockspace a consumer of privacy needs to purchase to make the same payments, the implied block space overhead for privacy is realistically an order of magnitude higher
+    
+    
+---
+    
 - The intuitive definition of "anonymity set" people often invoke for CoinJoins is problematic
   - it considers a transaction in isolation
   - however, a real world deanonymization adversary isn't restricted to only looking at a single transaction
@@ -29,31 +134,6 @@
       - useful special cases
       - practical/implementation considerations
       - mechanism design
-
-## Historical Context
-
-- gmaxwell's ["Coinjoin: Bitcoin privacy for the real world"](https://bitcointalk.org/index.php?topic=279249.0)
-  - $k$ users construct a transaction together
-    - for simplicity, we assume they send the money to themselves
-    - we also assume some coordination mechanism ensures transactions can be constructed with:
-      - privacy (users and observers learn nothing other than what the final transaction reveals)
-      - liveness (honest subset of the parties in the same network partition will succeed in outputting a valid txn)
-      - safety (inherent in requiring txns to be unanimously signed)
-    - the transaction obeys a certain symmetry
-      - there is at least one subsets of the outputs of size $\geq 2$, all members of which have identical values and equivalent scripts
-        - the scripts themselves differ but the script types must be identical
-        - public keys are random and not reused
-        - the order of outputs is random
-      - similar intuition to mixnets, coins are (kinda sorta) messages, the transaction shuffles them like a relay
-  - framed adversarially:
-    - To quantify privacy, ask whether or not an adversary can identify the owner of an output from an anonymity set
-    - being precise, the anonymity set of an output is the set of possible users who own it
-      - however, this set is not directly observable on the transaction graph, we only see coins
-      - if each output uniquely identifies a distinct user, the equivalence class of a given output is an anonymity set
-    - given only this transaction as data
-    - and a specific input within this transaction as a target
-    - the adversary can guess correctly which output was created by the same user as the given input no better than with probability $1/k$
-      - i.e. uniform probability distribution
 
 ## Model boundaries
 
@@ -221,3 +301,28 @@ For real world transaction graphs, the implied anonymity set model can only be s
 ## Coming up
 
 In the next post in this series we'll try to define this notion of anonymity set a more precisely. As the series progresses it will be progressively generalized to account for types of decay.
+
+
+
+---
+
+reconstruction attacks Dinur Nissim 03,  https://sci-hub.se/https://dl.acm.org/doi/10.1145/773153.773173
+
+"queries" about hidden state of wallet = cluster information
+
+motivation for exponential decay
+
+e-cash unlinkability vs. batching, hidden state = distribution of denominations
+
+danezis talk mixnet
+
+intersection attacks https://www.freehaven.net/anonbib/cache/disad-free-routes.pdf
+
+
+concrete attacks:
+- intersection
+- disclosure
+- statistical disclosure
+- family https://arxiv.org/pdf/1910.07603
+
+- reconstruction attack = upper bound
