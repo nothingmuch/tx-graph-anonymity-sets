@@ -1,0 +1,40 @@
+# Part 7: Accounting for privacy from counterparties in the random walk model
+
+- we now to turn the problem of priviliged viewpoints
+  - adversaries are not only constrained to public observers or dragnet surveillance
+  - we need privacy from our counterparties
+- motivating example: privacy from a local bitcoin ATM
+  - David Vorrick's Streaming Wallet model, privacy doom principle talk from btc++ cdmx
+  - Alice lives in a small community
+    - Bitcoin is not generally accepted as payment
+    - some of the local population uses for savings
+    - a KYC free, cash only ATM is available
+  - Alice would like to regularly buys small amounts bitcoin from the ATM for savings, and occasionally sell some of it back in order to make purchases
+    - especially when larger purchases are made, multiple coins will be linked together, to a specific subset of the ATM's old origin coins, thereby allowing the ATM to probabilistically cluster these together
+  - However, the ATM operator can surveil Alice if the ATM is her only counterparty
+    - Naive solution: just coinjoin after buying and before selling
+      - This lets Alice interact with random peoples' coins in such a way that implies that it could be their coins that end up being deposited back to the ATM
+    - Unfortunately this is Eve-Alice-Eve or Streaming Wallet model:
+      - every time she sells back a CoinJoin output to the ATM, the ATM can observe its own spending transactions (Alice's purchases) in the (recent) history of the new coins it receives
+      - this is true of *every* coin Alice controls, but normally would be a low probability event
+      - the ATM operator's power to surveil Alice in general increases exponentially over time
+        - furthermore, this holds for all other members of her community
+        - additional data is also available to heuristically cluster
+          - e.g. amount distributions, temporal patterns, especially wrt purchases
+- although this signal can't be removed, noise can be introduced
+  - suppose Alice purchases a coin $A_1$, and coinjoins with Bob, a random Bitcoin user from the internet, to produce $A_2$.
+  - Bob's output from the same coinjoin, $B_2$ would appear to be similar to Alice's
+    - if Bob were to sell it to the ATM, it would confound the ATM
+    - however that is very unlikely
+  - suppose Alice then goes on to spend $A_2$ in a coinjoin, creating $A_3, ... A_{i-1}$
+  - suppose Alice then spends $A_{i-1}$ into a coinjoin with a coin $C_{i-1}$, which can be traced back to $B_2$
+    - it doesn't matter if this is Bob (low likelyhood) or just a counterfactual path that could be $B_2$ but isn't
+  - there now exists two apparent paths path from $A_1$ to $A_i$,
+    - one is Alice's real wallet cluster pertaining to those funds
+    - the other is the counterfactual path through Bob's coin, that eventually rejoins Alice at step $i$.
+    - since we're tacitly assuming $i$ steps for both, these make the same contribution to the ATM's observable signal, but one of them is noise
+      - more generally, the path lengths may differ, and we'd like to have more than just plausible deniability but a sufficiently robust anonymity set whose constituent objects are these paths
+- conclusion
+  - in the this adverse settings we can quantify the entropy of special cases of the random walk idea
+  - TODO inuition: the intersections of the walks create symmetries which imply good expansion properties even after the strong cuts introduced by the private knowledge of the adversary
+

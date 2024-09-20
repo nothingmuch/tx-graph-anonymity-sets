@@ -1,0 +1,34 @@
+# Part 4: Accounting for transaction graph with respect to third parties
+
+- 4 party examples
+  - ![4_party_tx](https://hackmd.io/_uploads/rkp6AA3LC.svg)
+  - ![4_party_tx_network](https://hackmd.io/_uploads/rymCAAh8C.svg)
+  - note symmetry of these examples (4x 2 party coinjoins in Clos network vs. 1x 4 party coinjoin)
+  - gmaxwell mentioned Clos networks, more generally interconnection networks
+- In recent work (Istvan paper https://arxiv.org/abs/2211.04259) Diaz et al's notion of an entropic anonymity set was defined for a given coin based on the transaction graph structure
+  - over simplified explanation of their model
+    - assume every satoshi in an output has to have come from somewhere (originally a coinbase transaction)
+    - assume each input is equally satoshi is equally likely to have ended up as each output satoshi
+      - this is similar to how ordinal theory assumes by fiat a 1:1 correspondence based on order
+      - however, assuming the transaction was shuffled for privacy and funds may have been redirected arbitrarily within a transaction, any permutation of sats reasonable
+        - recall the "gold" metaphor to Bitcoin transaction, every transaction melts down lumps of bitcoin (the transaction inputs) and casts new ones (the outputs)
+      - one can also imagine Bitcoin as a (integer) Petri net where transactions are transitions, outputs are places, and tokens are sats
+  - conceptually, the probability of a specific satoshi originating from a particular coin can then be estimated by sampling random walks from unspent output
+    - note that this is symmetric, i.e. equally for every point of origin we can ask about the probability distribution of where it may have ended up
+  - note that this "per satoshi" perspective can justify the modelling assumption made in the paper, which assumes the transition probabilities of the random walks correspond to the values of the coins
+  - instead of a Monte Carlo approach, these probability distributions are estimated more efficiently using linear algebra
+  - the model also allows for subjective probabilities to be included in a straightforward way
+    - any private knowledge or additional analysis the adversary might have is represented as a matrix that combines with the ones derived from the graph
+    - this can account for the combinatorial explosion of potential quasi-identifiers alluded to in the previous post, as well as blockchain external information
+    - in particular, a refinement of this model would be to instead plug in the Boltzmann link probability matrix or its (more or less) equivalent link probabilities as per Maurer et al
+    - although this doing this explicitly computationally intractible, as defenders we are more interested in information theoretical lower bounds on how under-constrained a problem is, less so with the computational difficulty of solving an instance
+      - especially since the related approximation techniques are often very powerful, and many actual instances of the related hard problems (e.g. subset sum, which in general is NP complete) are often easy in practice (many special cases solvable in roughly linear time)
+- conclusion
+  - with entropic approach we need to measure the right thing
+    - e.g. the approach in the paper is potentially too optimistic for defender's point of view
+    - we also want to know how robust this measurement is, a transaction graph with good expansion properties will not result in higher entropy according to the model in the paper
+- conclusion
+  - the entropic model is sufficiently general to account for the graph, not just individual transactions
+  - using more conservative estimates, or different assumptions yields very different values
+    - as defenders, we are mostly interested in lower bounds, so e.g. Shannon entropy of conservative distribution, or perhaps more conservative entropy metrics
+

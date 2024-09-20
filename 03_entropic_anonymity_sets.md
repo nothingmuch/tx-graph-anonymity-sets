@@ -1,0 +1,46 @@
+# Part 3: Generalizing Anonymity Set Sizes
+
+- when we just count elements, we're tacitly assuming uniform probability distribution
+  - this is equivalent to assuming the adversary is ignoring a lot of information that is clearly available to it
+- what kind of information is available?
+  - attributes and quasi-identifier
+    - Sweeny, deanonymizing the US census etc
+    - wallet fingerprinting
+      - https://ishaana.com/blog/wallet_fingerprinting/
+      - script types
+      - nLocktime values
+      - RBF signalling
+      - non-random input/output ordering
+      - fee policies
+      - ...
+  - the values of coins
+  - txn graph
+    - partial order over coins, generates quadratic number of "attirbutes" and exponential number of quasi-identifier
+      - for every pair of coins, one might be an ancestor of the other, or they maybe unrelated
+      - this in turn generates an exponential space of quasi-identifiers, in which every coin is sparsely represented
+      - path length and plausibility of relatedness based on the coins' values can also be taken into account
+    - this is arguably the most important consideration, but we will address it in the next post
+- [Diaz et al](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=d24f67f78d07b33cd86bc0526f468d78c0892016)
+  - system model (communication)
+    - adversary capabilities
+    - senders and receivers in a network
+    - definition of anonymity set
+      - entropic approach for non-uniform distributions
+- applications of entropic anonymity to bitcoin
+  - values of coin within a single transaction
+    - [Maurer et al](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=d24f67f78d07b33cd86bc0526f468d78c0892016), sub-transaction model
+      - concrete application of Diaz like model to single bitcoin transaction
+      - generalizes from the notion of equivalence classes
+    - Boltzmann link probability matrix
+      - more or less equivalent, defined in terms of an entropy measure
+        - however, the commonly transaction level entropy is harder to interpret
+        - Maurer et al has a probablistic treatment of the probability of a specific input or output, taking the entropy of these distributions better suits our needs
+          - 0 fees assumption needs to be generalized
+    - both models computationally intractable for larger transactions
+  - in other words, for a given output, we can determine how much information an adversary would need to deterministically link it to a cluster of inputs
+    - this is under the assumption that no net transfers happen within the transaction
+    - this assumption is quite strong but seems to be justified in practice
+- conclusion
+  - by estimating the entropy of a distribution we can evaluate and compare apparent privacy more generally
+  - this opens the door to overcoming the practical challenges implied by only looking at equivalent coins
+
