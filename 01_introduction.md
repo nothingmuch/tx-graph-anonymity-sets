@@ -49,14 +49,16 @@ effectiveness).
 This is a heuristic because at the protocol level no such restriction exists:
 transactions can spend the coins of multiple users. Greg maxwell's 2013 bitcoin
 talk post ["CoinJoin: Bitcoin privacy for the real
-world"](https://bitcointalk.org/index.php?topic=279249.0) described(footnote:
-not for the first time, goes back at least to 2011) and named named an approach
-to building transactions that subvert the CIOH. Central to this approach is the
-elimination of the theft risk associated with mixing services that needed to be
-entrusted with user funds, which were already available.
+world"](https://bitcointalk.org/index.php?topic=279249.0) described[^1] and
+named named an approach to building transactions that subvert the CIOH. Central
+to this approach is the elimination of the theft risk associated with mixing
+services that needed to be entrusted with user funds, which were already
+available.
+
+[^1]: not for the first time, goes back at least to 2011
 
 In Greg Maxwell's description (some of) the outputs of this transaction have
-identical values, similarly to a shuffling stage in a mixnet. The intuition is
+identical values, similarly to a shuffling stage in a mixnet[TODO cite chaum]. The intuition is
 that an adversary is given only such a transaction, and is then challenged to
 guess which of the equivalent outputs was created by the participant which owns
 some particular given input (or more generally, some set of inputs). It directly
@@ -71,31 +73,35 @@ are often colloquially referred to as mixnets, when in fact the privacy
 assurances and threat model are vastly different. Secondly, CoinJoin
 transactions don't just exist in a vacuum, and real world adversaries have
 access to auxiliary information making the setup in the previous paragraph
-rather contrived.
+rather contrived. [TODO intersection, disclosure, statistical disclosure attacks
+on mixnets]
 
-Some simplifying assumptions will still be made throughout this series. To
-create a CoinJoin, $k$ users must construct a transaction together, each
-contributing one or more coins. Doing this reliably is not trivial in the
-presence of byzantine faults. Therefore for the most part we will assume some
-kind of perfect black box coordination mechanism. When building the transaction,
-neither the participants nor any third party observers will learn anything more
-than what the final transaction reveals, i.e. it has perfect data and metadata
-anonymity. For example, in the real world the order or timing in which inputs or
-outputs were added can help an adversary more accurately guess whether inputs
-and outputs are linked, but we will mostly ignore such details. Secondly,
-liveness will also be assumed, i.e. the honest participants will always succeed in
+Some simplifying assumptions will still be made throughout this series to narrow
+the scope somewhat. To create a CoinJoin, $k$ users must construct a transaction
+together, each contributing one or more coins. Doing this reliably is not
+trivial especially in the presence of byzantine faults, but concrete protocols
+for doing so are available. Therefore for the most part we will assume some kind of
+perfect black box coordination mechanism. This entails that when building the
+transaction, neither the participants nor any third party observers will learn
+anything more than what the final transaction reveals, i.e. it has perfect
+anonymity modulu the data leaks inherent in constructing a Bitcoin transaction.
+For example, in the real world the order or timing in which inputs or outputs
+were added can help an adversary more accurately guess whether inputs and
+outputs are linked, but we will mostly ignore such details.  Secondly, liveness
+will also be assumed, i.e. the honest participants will always succeed in
 outputting a valid transaction. In the real world denial of service must be
-mitigated and even if it is perfectly addressed, the partial synchrony or
-asynchronous communication model better characterizes network level failure
-modes. However, the liveness assumption implies the synchronous communication
-model for the same reason that safety is inherent for the most part: CoinJoins
-require unanimous agreement because a valid transaction requires signatures by
-owners of all of the coins it spends, allowing each participant to ensure that
-their funds are not misappropriated.
+mitigated since not all participants are honest.  Even if it is perfectly
+addressed, the partial synchrony or asynchronous communication model better
+characterizes network level failures, even under the assumption that no
+participants are adversarial. This assumption of liveness assumption implies the
+synchronous communication model for the same reason that safety is inherent for
+the most part: CoinJoins require unanimous agreement because a valid transaction
+requires signatures by owners of all of the coins it spends, allowing each
+participant to ensure that their funds are not misappropriated. That's not to
+say these details have no bearing on privacy let alone other software
+engineering considerations , only that they are out of scope.
 
-## Challenges with CoinJoin
-
-Since the term CoinJoin was introduced over a decade ago, multiple
+Finally, since the term CoinJoin was introduced more than a decade ago, multiple
 implementations have been developed, each with its own variation on the concept,
 making the term somewhat vague. At the same time it often connotes a rather
 rigid "mix" structure which presents some practical challenges, and as such is
