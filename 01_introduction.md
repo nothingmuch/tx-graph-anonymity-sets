@@ -105,45 +105,18 @@ Finally, since the term CoinJoin was introduced more than a decade ago, multiple
 implementations have been developed, each with its own variation on the concept,
 making the term somewhat vague. At the same time it often connotes a rather
 rigid "mix" structure which presents some practical challenges, and as such is
-arguably not just overly general, also overly specific.
+arguably not just overly general, also overly specific. Unless otherwise
+specified, in this series it will be used in a very broad sense which includes
+any collaborative transaction that spends inputs owned by multiple users.
 
-
-
-- fixed denomination (per tx or per pool)
-
-  - not general enough: people tend to assume a mix transaction structure, but that structure has some inherent limitations
-    - if any payment-linked output (newly received and change outputs) is mixed once before being used in another payment output this implies at minimum a 2x overhead in block space
-    - if a single party (e.g. taker in JoinMarket) pays for the entirety of the transaction this cost is proportional to the size of those transactions
-    - fragmentation, which is inherent in the UTXO model, not only directly contributes to this overhead, but adds an additional exponential overhead if accounting for intersection attacks
-    - therefore multiple mixing transactions the amount of blockspace a consumer of privacy needs to purchase to make the same payments, the implied block space overhead for privacy is realistically an order of magnitude higher
-    
-    
----
-    
-- The intuitive definition of "anonymity set" people often invoke for CoinJoins is problematic
-  - it considers a transaction in isolation
-  - however, a real world deanonymization adversary isn't restricted to only looking at a single transaction
-    - they have the entire transaction graph to work with
-    - as well as, potentially, information external to the transaction graph
-  - in order to make guarantees about privacy we must consider these losses
-    - often it's taken for granted that they are negligible. THESE ARE THOUGHT CRIMES!!!
-    - academic research on privacy is a rich field with many ideas we can borrow, so we can and should do better
-- This is a warm up post, the first in a series
-  - in this one we will look at some practical challenges of CoinJoin transactions
-  - In subsequent posts, we'll...
-    - borrow some ideas from academic research on privacy in general and on Bitcoin in particular
-    - build up to more robust and general definitions of anonymity sets on the transaction graph
-      - emphasis on graph
-    - end by looking at how Sybil resistance can be quantified and strengthened
-  - this is the (hopefully self contained) theoretical foundation of my ongoing protocol work
-    - to be detailed in subsequent posts after this series concludes
-      - useful special cases
-      - practical/implementation considerations
-      - mechanism design
+In this post, however, the term CoinJoin will be used more colloquially,
+referring to collaborative  transactions whose output set contains $k$
+equivalent outputs. Equivalent outputs have identical values, usually called the
+denomination of a CoinJoin, and the same script type. Without loss of generality
+self-spend outputs are also assumed, although technically nothing precludes
+creating a payment output directly from a CoinJoin.
 
 ## Model boundaries
-
-This model for an anonymity set builds on strong assumptions, which limits its applicability. We will try and make explicit some of these assumptions. As the series unfolds these assumptions will be progressively weakened, broadening the domain in which we can claim to quantiatively understand CoinJoin privacy.
 
 ### Data, metadata, ...
 
